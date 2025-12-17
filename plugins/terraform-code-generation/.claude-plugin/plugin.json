@@ -9,5 +9,22 @@
   "homepage": "https://developer.hashicorp.com/terraform/language/style",
   "repository": "https://github.com/hashicorp/terraform-mcp-server",
   "license": "MPL-2.0",
-  "keywords": ["terraform", "infrastructure", "automation", "hashicorp", "iac", "cloud"]
+  "keywords": ["terraform", "infrastructure", "automation", "hashicorp", "iac", "cloud"],
+  "mcpServers": {
+    "terraform": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e", "TFE_TOKEN",
+        "-e", "TFE_ADDRESS",
+        "hashicorp/terraform-mcp-server:0.3.3"
+      ],
+      "env": {
+        "TFE_TOKEN": "${TFE_TOKEN}",
+        "TFE_ADDRESS": "${TFE_ADDRESS}"
+      }
+    }
+  }
 }

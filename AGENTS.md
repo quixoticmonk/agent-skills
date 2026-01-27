@@ -78,7 +78,7 @@ Installation scopes (use `--scope` flag):
 
 ### Method 2: Individual Skill Installation
 
-Install individual skills using npx skills:
+Install individual skills using `npx skills add`:
 
 ```bash
 # List all available skills

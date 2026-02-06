@@ -37,8 +37,44 @@ Discover existing cloud resources using declarative queries and generate configu
 1. **Identify target resource type** (e.g., aws_s3_bucket, aws_instance)
 2. **Check if supported**: Run `./scripts/list_resources.sh <provider>`
 3. **Choose workflow**:
-   - **✅ If supported**: Use Terraform Search workflow (below)
-   - **❌ If not supported**: Use Manual Discovery workflow (see [references/MANUAL-IMPORT.md](references/MANUAL-IMPORT.md))
+   - ** If supported**: Use Terraform Search workflow (below)
+   - ** If not supported**: Use Manual Discovery workflow (see [references/MANUAL-IMPORT.md](references/MANUAL-IMPORT.md))
+
+## Prerequisites
+
+Before writing queries, verify the provider supports list resources for your target resource type.
+
+### Discover Available List Resources
+
+Run the helper script to extract supported list resources from your provider:
+
+```bash
+# From a directory with provider configuration (runs terraform init if needed)
+./scripts/list_resources.sh aws      # Specific provider
+./scripts/list_resources.sh          # All configured providers
+```
+
+Or manually query the provider schema:
+
+```bash
+terraform providers schema -json | jq '.provider_schemas | to_entries | map({key: (.key | split("/")[-1]), value: (.value.list_resource_schemas // {} | keys)})'
+```
+
+Terraform Search requires an initialized working directory. Ensure you have a configuration with the required provider before running queries:
+
+```hcl
+# terraform.tf
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+  }
+}
+```
+
+Run `terraform init` to download the provider, then proceed with queries.
 
 ## Terraform Search Workflow (Supported Resources Only)
 
@@ -170,42 +206,6 @@ list "aws_instance" "by_env" {
 }
 ```
 
-## Prerequisites
-
-Before writing queries, verify the provider supports list resources for your target resource type.
-
-### Discover Available List Resources
-
-Run the helper script to extract supported list resources from your provider:
-
-```bash
-# From a directory with provider configuration (runs terraform init if needed)
-./scripts/list_resources.sh aws      # Specific provider
-./scripts/list_resources.sh          # All configured providers
-```
-
-Or manually query the provider schema:
-
-```bash
-terraform providers schema -json | jq '.provider_schemas | to_entries | map({key: (.key | split("/")[-1]), value: (.value.list_resource_schemas // {} | keys)})'
-```
-
-Terraform Search requires an initialized working directory. Ensure you have a configuration with the required provider before running queries:
-
-```hcl
-# terraform.tf
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-  }
-}
-```
-
-Run `terraform init` to download the provider, then proceed with queries.
-
 ## Running Queries
 
 ```bash
@@ -298,8 +298,6 @@ import {
 }
 ```
 
-This is more robust than string-based import IDs.
-
 ## Best Practices
 
 ### Query Design
@@ -312,18 +310,6 @@ This is more robust than string-based import IDs.
 - Remove unnecessary default values
 - Use consistent naming conventions
 - Add proper variable abstraction
-
-### State Safety
-- Always run `terraform plan` before `apply`
-- Back up existing state before bulk imports
-- Import in batches for large resource sets
-
-## Limitations
-
-- Provider support is limited (AWS has 3 list types currently)
-- Negative filters not directly supported
-- Generated configuration may need significant cleanup
-- Variables in `.tfquery.hcl` must also exist in root module
 
 ## Troubleshooting
 

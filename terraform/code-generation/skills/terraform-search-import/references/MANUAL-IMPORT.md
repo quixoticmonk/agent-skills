@@ -7,47 +7,43 @@ Use this workflow when your target resource type isn't supported by Terraform Se
 AWS CLI examples:
 
 ```bash
-# S3 buckets
-aws s3api list-buckets --query 'Buckets[].Name' --output table
-
-# RDS instances  
+# RDS instances (not yet supported by Terraform Search)
 aws rds describe-db-instances --query 'DBInstances[].DBInstanceIdentifier'
 
-# VPCs
-aws ec2 describe-vpcs --query 'Vpcs[].VpcId'
+# DynamoDB tables (not yet supported by Terraform Search)
+aws dynamodb list-tables --query 'TableNames[]'
 
-# Lambda functions
-aws lambda list-functions --query 'Functions[].FunctionName'
+# API Gateway REST APIs (not yet supported by Terraform Search)
+aws apigateway get-rest-apis --query 'items[].id'
+
+# SNS topics (not yet supported by Terraform Search)
+aws sns list-topics --query 'Topics[].TopicArn'
 ```
 
 ## 2. Create Resource Blocks Manually
 
 ```hcl
-# Example for S3 bucket
-resource "aws_s3_bucket" "existing_bucket" {
-  bucket = "my-existing-bucket-name"
-}
-
 # Example for RDS instance
 resource "aws_db_instance" "existing_db" {
   identifier = "my-existing-db"
   # Add other required attributes
+}
+
+# Example for DynamoDB table
+resource "aws_dynamodb_table" "existing_table" {
+  name = "my-existing-table"
+  # Add other required attributes
+}
+
+# Example for SNS topic
+resource "aws_sns_topic" "existing_topic" {
+  name = "my-existing-topic"
 }
 ```
 
 ## 3. Create Import Blocks (Config-Driven Import)
 
 ```hcl
-# Example for S3 bucket
-resource "aws_s3_bucket" "existing_bucket" {
-  bucket = "my-existing-bucket-name"
-}
-
-import {
-  to = aws_s3_bucket.existing_bucket
-  id = "my-existing-bucket-name"
-}
-
 # Example for RDS instance
 resource "aws_db_instance" "existing_db" {
   identifier = "my-existing-db"
@@ -57,6 +53,17 @@ resource "aws_db_instance" "existing_db" {
 import {
   to = aws_db_instance.existing_db
   id = "my-existing-db"
+}
+
+# Example for DynamoDB table
+resource "aws_dynamodb_table" "existing_table" {
+  name = "my-existing-table"
+  # Add other required attributes
+}
+
+import {
+  to = aws_dynamodb_table.existing_table
+  id = "my-existing-table"
 }
 ```
 
@@ -76,31 +83,31 @@ For multiple resources of the same type:
 
 ```bash
 #!/bin/bash
-# bulk-import-s3.sh
+# bulk-import-dynamodb.sh
 
-# Get all bucket names
-buckets=$(aws s3api list-buckets --query 'Buckets[].Name' --output text)
+# Get all table names
+tables=$(aws dynamodb list-tables --query 'TableNames[]' --output text)
 
 # Generate import configuration
-cat > s3-imports.tf << 'EOF'
-# S3 Bucket Resources and Imports
+cat > dynamodb-imports.tf << 'EOF'
+# DynamoDB Table Resources and Imports
 EOF
 
-for bucket in $buckets; do
+for table in $tables; do
   # Create resource and import blocks
-  cat >> s3-imports.tf << EOF
-resource "aws_s3_bucket" "bucket_${bucket//[-.]/_}" {
-  bucket = "$bucket"
+  cat >> dynamodb-imports.tf << EOF
+resource "aws_dynamodb_table" "table_${table//[-.]/_}" {
+  name = "$table"
 }
 
 import {
-  to = aws_s3_bucket.bucket_${bucket//[-.]/_}
-  id = "$bucket"
+  to = aws_dynamodb_table.table_${table//[-.]/_}
+  id = "$table"
 }
 
 EOF
 done
 
-echo "Generated s3-imports.tf with import blocks"
+echo "Generated dynamodb-imports.tf with import blocks"
 echo "Run 'terraform plan' to review, then 'terraform apply' to import"
 ```

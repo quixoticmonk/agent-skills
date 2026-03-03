@@ -40,6 +40,8 @@ Discover existing cloud resources using declarative queries and generate configu
    - ** If supported**: Check for terraform version available.
    - ** If terraform version is above 1.14.0** Use Terraform Search workflow (below)
    - ** If not supported or terraform version is below 1.14.0 **: Use Manual Discovery workflow (see [references/MANUAL-IMPORT.md](references/MANUAL-IMPORT.md))
+   
+   **Note**: The list of supported resources is rapidly expanding. Always verify current support before using manual import.
 
 ## Prerequisites
 
@@ -109,13 +111,21 @@ list "aws_instance" "all" {
 list "<list_type>" "<symbolic_name>" {
   provider = <provider_reference>  # Required
   
-  # Optional: filter configuration
+  # Optional: filter configuration (provider-specific)
   config {
     filter {
       name   = "<filter_name>"
       values = ["<value1>", "<value2>"]
     }
-    region = "<region>"  # Provider-specific config
+    region = "<region>"  # AWS-specific
+  }
+}
+```
+
+**Note**: The `config` block schema is provider-specific. Discover available options:
+```bash
+terraform providers schema -json | jq '.provider_schemas."registry.terraform.io/hashicorp/<provider>".list_resource_schemas."<resource_type>"'
+```
   }
   
   # Optional: limit results

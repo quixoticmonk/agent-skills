@@ -120,12 +120,9 @@ list "<list_type>" "<symbolic_name>" {
     region = "<region>"  # AWS-specific
   }
 }
-```
 
-**Note**: The `config` block schema is provider-specific. Discover available options:
-```bash
-terraform providers schema -json | jq '.provider_schemas."registry.terraform.io/hashicorp/<provider>".list_resource_schemas."<resource_type>"'
-```
+# The `config` block schema is provider-specific. Discover available options using `terraform providers schema -json | jq '.provider_schemas."registry.terraform.io/hashicorp/<provider>".list_resource_schemas."<resource_type>"'`
+
   }
   
   # Optional: limit results
